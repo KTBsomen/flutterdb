@@ -6,3 +6,7 @@
 - Unique ID generation for documents
 - Support for complex queries, updates, and aggregations
 - Batch operations for better performance
+
+## 0.0.2
+
+- Fixed Journal_Mode=WAL issue

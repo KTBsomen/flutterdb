@@ -1,6 +1,6 @@
 name: flutterdb
-description: "FlutterDB is a sqflite backed database with APIs like MongoDB for Flutter applications. It provides a simple and efficient way to store and retrieve JSON data using SQLite, making it easy to manage local data in your Flutter apps."
-version: 0.0.1
+description: "FlutterDB is a sqflite backed database with APIs like MongoDB for Flutter applications.It is like Local MongoDB for Flutter applications."
+version: 0.0.2
 homepage: "https://github.com/KTBsomen/flutterdb.git"
 repository: "https://github.com/KTBsomen/flutterdb.git"
 

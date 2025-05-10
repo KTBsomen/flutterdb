@@ -810,7 +810,9 @@ class Collection {
         // Handle top-level operators
         switch (key) {
           case '\$or':
-            if (queryValue is! List) return false;
+            if (queryValue is! List) {
+              return false;
+            }
             bool orMatches = false;
             for (var subQuery in queryValue) {
               if (_matchesQuery(document, subQuery)) {
@@ -818,10 +820,14 @@ class Collection {
                 break;
               }
             }
-            if (!orMatches) return false;
+            if (!orMatches) {
+              return false;
+            }
             break;
           case '\$and':
-            if (queryValue is! List) return false;
+            if (queryValue is! List) {
+              return false;
+            }
             for (var subQuery in queryValue) {
               if (!_matchesQuery(document, subQuery)) {
                 return false;
@@ -829,7 +835,9 @@ class Collection {
             }
             break;
           case '\$nor':
-            if (queryValue is! List) return false;
+            if (queryValue is! List) {
+              return false;
+            }
             for (var subQuery in queryValue) {
               if (_matchesQuery(document, subQuery)) {
                 return false;
@@ -848,31 +856,45 @@ class Collection {
 
           switch (op) {
             case '\$eq':
-              if (docValue != expectedValue) return false;
+              if (docValue != expectedValue) {
+                return false;
+              }
               break;
             case '\$gt':
               if (docValue is num && expectedValue is num) {
-                if (!(docValue > expectedValue)) return false;
+                if (!(docValue > expectedValue)) {
+                  return false;
+                }
               } else if (docValue is String && expectedValue is String) {
-                if (!(docValue.compareTo(expectedValue) > 0)) return false;
+                if (!(docValue.compareTo(expectedValue) > 0)) {
+                  return false;
+                }
               } else {
                 return false;
               }
               break;
             case '\$gte':
               if (docValue is num && expectedValue is num) {
-                if (!(docValue >= expectedValue)) return false;
+                if (!(docValue >= expectedValue)) {
+                  return false;
+                }
               } else if (docValue is String && expectedValue is String) {
-                if (!(docValue.compareTo(expectedValue) >= 0)) return false;
+                if (!(docValue.compareTo(expectedValue) >= 0)) {
+                  return false;
+                }
               } else {
                 return false;
               }
               break;
             case '\$lt':
               if (docValue is num && expectedValue is num) {
-                if (!(docValue < expectedValue)) return false;
+                if (!(docValue < expectedValue)) {
+                  return false;
+                }
               } else if (docValue is String && expectedValue is String) {
-                if (!(docValue.compareTo(expectedValue) < 0)) return false;
+                if (!(docValue.compareTo(expectedValue) < 0)) {
+                  return false;
+                }
               } else {
                 return false;
               }
@@ -881,13 +903,17 @@ class Collection {
               if (docValue is num && expectedValue is num) {
                 if (!(docValue <= expectedValue)) return false;
               } else if (docValue is String && expectedValue is String) {
-                if (!(docValue.compareTo(expectedValue) <= 0)) return false;
+                if (!(docValue.compareTo(expectedValue) <= 0)) {
+                  return false;
+                }
               } else {
                 return false;
               }
               break;
             case '\$ne':
-              if (docValue == expectedValue) return false;
+              if (docValue == expectedValue) {
+                return false;
+              }
               break;
             case '\$in':
               if (!(expectedValue is List &&
@@ -913,7 +939,9 @@ class Collection {
               }
               try {
                 final regex = RegExp(expectedValue);
-                if (!regex.hasMatch(docValue)) return false;
+                if (!regex.hasMatch(docValue)) {
+                  return false;
+                }
               } catch (e) {
                 return false;
               }
@@ -921,7 +949,10 @@ class Collection {
             case '\$like':
               if (!(docValue is String &&
                   expectedValue is String &&
-                  docValue.contains(expectedValue))) return false;
+                  docValue.contains(expectedValue))) {
+                return false;
+              }
+              ;
               break;
             default:
               return false;
@@ -930,7 +961,9 @@ class Collection {
       } else {
         // Simple equality match
         final docValue = _getNestedValue(document, key);
-        if (docValue != queryValue) return false;
+        if (docValue != queryValue) {
+          return false;
+        }
       }
     }
 

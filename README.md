@@ -17,7 +17,7 @@ Add the following dependencies to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutterdb: ^0.0.1
+  flutterdb: ^0.0.2
 ```
 
 ## Getting Started
@@ -83,13 +83,13 @@ final ids = await users.insertMany([
 final allUsers = await users.find({});
 
 // Find documents with a simple query
-final adults = await users.find({'age': {'$gte': 18}});
+final adults = await users.find({'age': {'\$gte': 18}});
 
 // Find a document by ID
 final user = await users.findById(userId);
 
 // Count documents
-final userCount = await users.count({'age': {'$gt': 30}});
+final userCount = await users.count({'age': {'\$gt': 30}});
 ```
 
 #### Update
@@ -100,7 +100,7 @@ await users.updateById(userId, {'status': 'active'});
 
 // Update multiple documents
 final updatedCount = await users.updateMany(
-  {'age': {'$lt': 30}},
+  {'age': {'\$lt': 30}},
   {'status': 'young'}
 );
 ```
@@ -121,16 +121,16 @@ final deletedCount = await users.deleteMany({'status': 'inactive'});
 
 ```dart
 // Greater than
-await users.find({'age': {'$gt': 30}});
+await users.find({'age': {'\$gt': 30}});
 
 // Less than or equal
-await users.find({'age': {'$lte': 25}});
+await users.find({'age': {'\$lte': 25}});
 
 // Not equal
-await users.find({'status': {'$ne': 'inactive'}});
+await users.find({'status': {'\$ne': 'inactive'}});
 
 // In array
-await users.find({'role': {'$in': ['admin', 'moderator']}});
+await users.find({'role': {'\$in': ['admin', 'moderator']}});
 ```
 
 ### Logical Operators
@@ -138,23 +138,23 @@ await users.find({'role': {'$in': ['admin', 'moderator']}});
 ```dart
 // AND
 await users.find({
-  '$and': [
-    {'age': {'$gte': 18}},
+  '\$and': [
+    {'age': {'\$gte': 18}},
     {'status': 'active'}
   ]
 });
 
 // OR
 await users.find({
-  '$or': [
+  '\$or': [
     {'role': 'admin'},
-    {'permissions': {'$in': ['write', 'delete']}}
+    {'permissions': {'\$in': ['write', 'delete']}}
   ]
 });
 
 // NOR
 await users.find({
-  '$nor': [
+  '\$nor': [
     {'status': 'banned'},
     {'role': 'guest'}
   ]
@@ -165,28 +165,28 @@ await users.find({
 
 ```dart
 // Regex search
-await users.find({'name': {'$regex': '^Jo'}});
+await users.find({'name': {'\$regex': '^Jo'}});
 
 // Simple text search
-await users.find({'bio': {'$like': 'flutter developer'}});
+await users.find({'bio': {'\$like': 'flutter developer'}});
 ```
 
 ### Aggregation
 
 ```dart
 final results = await users.aggregate([
-  {'$match': {'status': 'active'}},
-  {'$sort': {'age': -1}},
-  {'$skip': 10},
-  {'$limit': 20},
-  {'$project': {
+  {'\$match': {'status': 'active'}},
+  {'\$sort': {'age': -1}},
+  {'\$skip': 10},
+  {'\$limit': 20},
+  {'\$project': {
           'name': 1,
           'age': 1,
           'city': 1,
           '_id': 0,
                }
   },
-  {'$group': {
+  {'\$group': {
           '_id': '\$city',
           'count': {'\$sum': 1}
         }
@@ -213,7 +213,7 @@ final results = await users.aggregate([
 
 4. **Use appropriate queries**:
    - Finding by ID is faster than complex queries
-   - Limit results when possible using `$limit`
+   - Limit results when possible using `\$limit`
 
 ### Data Structure
 
@@ -289,7 +289,7 @@ class UserRepository {
   Future<List<Map<String, dynamic>>> getAdultUsers() async {
     final collection = await _users;
     return await collection.find({
-      'age': {'$gte': 18},
+      'age': {'\$gte': 18},
     });
   }
 
