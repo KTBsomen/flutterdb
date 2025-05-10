@@ -58,6 +58,9 @@ class FlutterDB {
       dbPath,
       version: _version,
       onCreate: _createDb,
+      onConfigure: (db) async {
+        await db.rawQuery('PRAGMA journal_mode=WAL');
+      },
     );
   }
 
@@ -120,7 +123,7 @@ class FlutterDB {
       );
       return true;
     } catch (e) {
-      print('Error dropping collection: $e');
+      //print('Error dropping collection: $e');
       return false;
     }
   }
@@ -773,7 +776,7 @@ class Collection {
         final geoNearStage = stage['\$geoNear'] as Map<String, dynamic>;
         final near = geoNearStage['near'] as List<double>;
         final distanceField = geoNearStage['distanceField'] as String;
-        final spherical = geoNearStage['spherical'] as bool? ?? false;
+        //final spherical = geoNearStage['spherical'] as bool? ?? false;
         final maxDistance = geoNearStage['maxDistance'] as double?;
         final resultsWithDistance = <Map<String, dynamic>>[];
 
@@ -887,21 +890,27 @@ class Collection {
               if (docValue == expectedValue) return false;
               break;
             case '\$in':
-              if (!(expectedValue is List && expectedValue.contains(docValue)))
+              if (!(expectedValue is List &&
+                  expectedValue.contains(docValue))) {
                 return false;
+              }
               break;
             case '\$nin':
-              if (!(expectedValue is List && !expectedValue.contains(docValue)))
+              if (!(expectedValue is List &&
+                  !expectedValue.contains(docValue))) {
                 return false;
+              }
               break;
             case '\$exists':
               final exists = document.containsKey(key) || docValue != null;
-              if (expectedValue is bool && exists != expectedValue)
+              if (expectedValue is bool && exists != expectedValue) {
                 return false;
+              }
               break;
             case '\$regex':
-              if (!(docValue is String && expectedValue is String))
+              if (!(docValue is String && expectedValue is String)) {
                 return false;
+              }
               try {
                 final regex = RegExp(expectedValue);
                 if (!regex.hasMatch(docValue)) return false;
