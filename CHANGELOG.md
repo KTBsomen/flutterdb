@@ -10,3 +10,7 @@
 ## 0.0.2
 
 - Fixed Journal_Mode=WAL issue
+
+## 0.0.3
+
+- Added findByPage method for easy pagination
