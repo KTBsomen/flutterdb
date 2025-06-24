@@ -14,3 +14,6 @@
 ## 0.0.3
 
 - Added findByPage method for easy pagination
+
+## 0.0.4
+- fixed journal_mode issue

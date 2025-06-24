@@ -87,6 +87,8 @@ final adults = await users.find({'age': {'\$gte': 18}});
 
 // Find a document by ID
 final user = await users.findById(userId);
+// Find by page
+final users = await users.findByPage(page: 1, limit: 10);
 
 // Count documents
 final userCount = await users.count({'age': {'\$gt': 30}});

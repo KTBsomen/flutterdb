@@ -87,7 +87,7 @@ class FlutterDB {
     await db.execute(
       'CREATE INDEX idx_collection ON documents (collection_name)',
     );
-    await db.execute('PRAGMA journal_mode=WAL;');
+    await db.rawQuery('PRAGMA journal_mode=WAL;');
   }
 
   /// Creates a collection if it doesn't exist
