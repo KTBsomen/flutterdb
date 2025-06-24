@@ -1,6 +1,6 @@
 name: flutterdb
 description: "FlutterDB is a sqflite backed database with APIs like MongoDB for Flutter applications.It is like Local MongoDB for Flutter applications."
-version: 0.0.2
+version: 0.0.3
 homepage: "https://github.com/KTBsomen/flutterdb.git"
 repository: "https://github.com/KTBsomen/flutterdb.git"
 

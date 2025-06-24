@@ -10,10 +10,11 @@ import 'dart:math';
 /// Generates unique IDs for documents
 class IdGenerator {
   static String generateId() {
-    final timestamp = (DateTime.now().millisecondsSinceEpoch ~/
-            1000) // use seconds like MongoDB
-        .toRadixString(16)
-        .padLeft(8, '0');
+    final timestamp =
+        (DateTime.now().millisecondsSinceEpoch ~/
+                1000) // use seconds like MongoDB
+            .toRadixString(16)
+            .padLeft(8, '0');
     final randomPart = _getRandomPart();
     final counter = _getCounter();
     return '$timestamp$randomPart$counter';
@@ -83,8 +84,9 @@ class FlutterDB {
     ''');
 
     // Create indexes for faster querying
-    await db
-        .execute('CREATE INDEX idx_collection ON documents (collection_name)');
+    await db.execute(
+      'CREATE INDEX idx_collection ON documents (collection_name)',
+    );
     await db.execute('PRAGMA journal_mode=WAL;');
   }
 
@@ -111,11 +113,7 @@ class FlutterDB {
   Future<bool> dropCollection(String name) async {
     final db = await database;
     try {
-      await db.delete(
-        'collections',
-        where: 'name = ?',
-        whereArgs: [name],
-      );
+      await db.delete('collections', where: 'name = ?', whereArgs: [name]);
       await db.delete(
         'documents',
         where: 'collection_name = ?',
@@ -215,8 +213,9 @@ class Collection {
     if (query.isEmpty) {
       // If no query, return all documents
       return results
-          .map((doc) =>
-              jsonDecode(doc['data'] as String) as Map<String, dynamic>)
+          .map(
+            (doc) => jsonDecode(doc['data'] as String) as Map<String, dynamic>,
+          )
           .toList();
     }
 
@@ -244,6 +243,44 @@ class Collection {
     return jsonDecode(results.first['data'] as String) as Map<String, dynamic>;
   }
 
+  /// find by page and limit
+  /// Returns a list of documents
+  Future<List<Map<String, dynamic>>> findByPage({
+    int page = 1,
+    int limit = 10,
+    Map<String, dynamic>? query,
+  }) async {
+    final offset = (page - 1) * limit;
+
+    // First get all documents in the collection
+    final results = await _db.query(
+      'documents',
+      where: 'collection_name = ?',
+      whereArgs: [name],
+      limit: limit,
+      offset: offset,
+    );
+
+    if (query != null && query.isNotEmpty) {
+      // Filter documents based on query
+      final filteredResults = results.where((doc) {
+        final document =
+            jsonDecode(doc['data'] as String) as Map<String, dynamic>;
+        return _matchesQuery(document, query);
+      }).toList();
+
+      return filteredResults
+          .map(
+            (doc) => jsonDecode(doc['data'] as String) as Map<String, dynamic>,
+          )
+          .toList();
+    }
+
+    return results
+        .map((doc) => jsonDecode(doc['data'] as String) as Map<String, dynamic>)
+        .toList();
+  }
+
   /// Updates a document by ID
   Future<bool> updateById(String id, Map<String, dynamic> update) async {
     // First get the document
@@ -258,10 +295,7 @@ class Collection {
     final now = DateTime.now().millisecondsSinceEpoch;
     final count = await _db.update(
       'documents',
-      {
-        'data': jsonEncode(doc),
-        'updated_at': now,
-      },
+      {'data': jsonEncode(doc), 'updated_at': now},
       where: 'id = ? AND collection_name = ?',
       whereArgs: [id, name],
     );
@@ -271,7 +305,9 @@ class Collection {
 
   /// Updates documents matching the query
   Future<int> updateMany(
-      Map<String, dynamic> query, Map<String, dynamic> update) async {
+    Map<String, dynamic> query,
+    Map<String, dynamic> update,
+  ) async {
     // First find all matching documents
     final docs = await find(query);
     if (docs.isEmpty) return 0;
@@ -286,10 +322,7 @@ class Collection {
 
       batch.update(
         'documents',
-        {
-          'data': jsonEncode(doc),
-          'updated_at': now,
-        },
+        {'data': jsonEncode(doc), 'updated_at': now},
         where: 'id = ? AND collection_name = ?',
         whereArgs: [id, name],
       );
@@ -348,14 +381,16 @@ class Collection {
 
   /// Performs aggregation operations
   Future<List<Map<String, dynamic>>> aggregate(
-      List<Map<String, dynamic>> pipeline) async {
+    List<Map<String, dynamic>> pipeline,
+  ) async {
     List<Map<String, dynamic>> results = await find({});
 
     for (var stage in pipeline) {
       if (stage.containsKey('\$match')) {
         final matchQuery = stage['\$match'] as Map<String, dynamic>;
-        results =
-            results.where((doc) => _matchesQuery(doc, matchQuery)).toList();
+        results = results
+            .where((doc) => _matchesQuery(doc, matchQuery))
+            .toList();
       } else if (stage.containsKey('\$sort')) {
         final sortFields = stage['\$sort'] as Map<String, dynamic>;
         results.sort((a, b) {
@@ -529,8 +564,10 @@ class Collection {
                   toAdd = fieldValue;
                 }
               }
-              grouped[groupKey]![key] =
-                  max(grouped[groupKey]![key] as num, toAdd); // Update max
+              grouped[groupKey]![key] = max(
+                grouped[groupKey]![key] as num,
+                toAdd,
+              ); // Update max
             }
             if (value is Map && value.containsKey('\$min')) {
               final minField = value['\$min'];
@@ -544,8 +581,10 @@ class Collection {
                   toAdd = fieldValue;
                 }
               }
-              grouped[groupKey]![key] =
-                  min(grouped[groupKey]![key] as num, toAdd); // Update min
+              grouped[groupKey]![key] = min(
+                grouped[groupKey]![key] as num,
+                toAdd,
+              ); // Update min
             }
             if (value is Map && value.containsKey('\$push')) {
               final pushField = value['\$push'];
@@ -558,8 +597,9 @@ class Collection {
             if (value is Map && value.containsKey('\$addToSet')) {
               final addToSetField = value['\$addToSet'];
               if (addToSetField is String && addToSetField.startsWith(r'$')) {
-                final field =
-                    addToSetField.substring(1); // Remove the leading $
+                final field = addToSetField.substring(
+                  1,
+                ); // Remove the leading $
                 final fieldValue = _getNestedValue(doc, field);
                 grouped[groupKey]![key].add(fieldValue);
               }
@@ -587,8 +627,9 @@ class Collection {
                 toAdd = stdDevPopField;
               } else if (stdDevPopField is String &&
                   stdDevPopField.startsWith(r'$')) {
-                final field =
-                    stdDevPopField.substring(1); // Remove the leading $
+                final field = stdDevPopField.substring(
+                  1,
+                ); // Remove the leading $
                 final fieldValue = _getNestedValue(doc, field);
                 if (fieldValue is num) {
                   toAdd = fieldValue;
@@ -603,8 +644,9 @@ class Collection {
                 toAdd = stdDevSampField;
               } else if (stdDevSampField is String &&
                   stdDevSampField.startsWith(r'$')) {
-                final field =
-                    stdDevSampField.substring(1); // Remove the leading $
+                final field = stdDevSampField.substring(
+                  1,
+                ); // Remove the leading $
                 final fieldValue = _getNestedValue(doc, field);
                 if (fieldValue is num) {
                   toAdd = fieldValue;
@@ -616,8 +658,9 @@ class Collection {
               final mergeObjectsField = value['\$mergeObjects'];
               if (mergeObjectsField is String &&
                   mergeObjectsField.startsWith(r'$')) {
-                final field =
-                    mergeObjectsField.substring(1); // Remove the leading $
+                final field = mergeObjectsField.substring(
+                  1,
+                ); // Remove the leading $
                 final fieldValue = _getNestedValue(doc, field);
                 grouped[groupKey]![key].addAll(fieldValue);
               }
@@ -626,8 +669,9 @@ class Collection {
               final concatArraysField = value['\$concatArrays'];
               if (concatArraysField is String &&
                   concatArraysField.startsWith(r'$')) {
-                final field =
-                    concatArraysField.substring(1); // Remove the leading $
+                final field = concatArraysField.substring(
+                  1,
+                ); // Remove the leading $
                 final fieldValue = _getNestedValue(doc, field);
                 grouped[groupKey]![key].addAll(fieldValue);
               }
@@ -636,8 +680,9 @@ class Collection {
               final arrayToObjectField = value['\$arrayToObject'];
               if (arrayToObjectField is String &&
                   arrayToObjectField.startsWith(r'$')) {
-                final field =
-                    arrayToObjectField.substring(1); // Remove the leading $
+                final field = arrayToObjectField.substring(
+                  1,
+                ); // Remove the leading $
                 final fieldValue = _getNestedValue(doc, field);
                 grouped[groupKey]![key].addAll(fieldValue);
               }
@@ -653,8 +698,9 @@ class Collection {
             if (value is Map && value.containsKey('\$setUnion')) {
               final setUnionField = value['\$setUnion'];
               if (setUnionField is String && setUnionField.startsWith(r'$')) {
-                final field =
-                    setUnionField.substring(1); // Remove the leading $
+                final field = setUnionField.substring(
+                  1,
+                ); // Remove the leading $
                 final fieldValue = _getNestedValue(doc, field);
                 grouped[groupKey]![key].addAll(fieldValue);
               }
@@ -663,8 +709,9 @@ class Collection {
               final setIntersectionField = value['\$setIntersection'];
               if (setIntersectionField is String &&
                   setIntersectionField.startsWith(r'$')) {
-                final field =
-                    setIntersectionField.substring(1); // Remove the leading $
+                final field = setIntersectionField.substring(
+                  1,
+                ); // Remove the leading $
                 final fieldValue = _getNestedValue(doc, field);
                 grouped[groupKey]![key].addAll(fieldValue);
               }
@@ -673,8 +720,9 @@ class Collection {
               final setDifferenceField = value['\$setDifference'];
               if (setDifferenceField is String &&
                   setDifferenceField.startsWith(r'$')) {
-                final field =
-                    setDifferenceField.substring(1); // Remove the leading $
+                final field = setDifferenceField.substring(
+                  1,
+                ); // Remove the leading $
                 final fieldValue = _getNestedValue(doc, field);
                 grouped[groupKey]![key].addAll(fieldValue);
               }
@@ -683,8 +731,9 @@ class Collection {
               final setIsSubsetField = value['\$setIsSubset'];
               if (setIsSubsetField is String &&
                   setIsSubsetField.startsWith(r'$')) {
-                final field =
-                    setIsSubsetField.substring(1); // Remove the leading $
+                final field = setIsSubsetField.substring(
+                  1,
+                ); // Remove the leading $
                 final fieldValue = _getNestedValue(doc, field);
                 grouped[groupKey]![key].addAll(fieldValue);
               }
@@ -692,8 +741,9 @@ class Collection {
             if (value is Map && value.containsKey('\$setEquals')) {
               final setEqualsField = value['\$setEquals'];
               if (setEqualsField is String && setEqualsField.startsWith(r'$')) {
-                final field =
-                    setEqualsField.substring(1); // Remove the leading $
+                final field = setEqualsField.substring(
+                  1,
+                ); // Remove the leading $
                 final fieldValue = _getNestedValue(doc, field);
                 grouped[groupKey]![key].addAll(fieldValue);
               }
@@ -702,8 +752,9 @@ class Collection {
               final setIsSubsetField = value['\$setIsSubset'];
               if (setIsSubsetField is String &&
                   setIsSubsetField.startsWith(r'$')) {
-                final field =
-                    setIsSubsetField.substring(1); // Remove the leading $
+                final field = setIsSubsetField.substring(
+                  1,
+                ); // Remove the leading $
                 final fieldValue = _getNestedValue(doc, field);
                 grouped[groupKey]![key].addAll(fieldValue);
               }
@@ -717,7 +768,7 @@ class Collection {
       } else if (stage.containsKey('\$count')) {
         final countField = stage['\$count'] as String;
         results = [
-          {countField: results.length}
+          {countField: results.length},
         ];
       } else if (stage.containsKey('\$project')) {
         final projectFields = stage['\$project'] as Map<String, dynamic>;
@@ -784,7 +835,8 @@ class Collection {
           final location = _getNestedValue(doc, distanceField) as List<double>?;
           if (location != null) {
             final distance = sqrt(
-                pow(location[0] - near[0], 2) + pow(location[1] - near[1], 2));
+              pow(location[0] - near[0], 2) + pow(location[1] - near[1], 2),
+            );
             if (maxDistance == null || distance <= maxDistance) {
               final newDoc = Map<String, dynamic>.from(doc);
               newDoc[distanceField] = distance;
@@ -802,7 +854,9 @@ class Collection {
 
   /// Matches a document against a query
   bool _matchesQuery(
-      Map<String, dynamic> document, Map<String, dynamic> query) {
+    Map<String, dynamic> document,
+    Map<String, dynamic> query,
+  ) {
     for (var key in query.keys) {
       var queryValue = query[key];
 
